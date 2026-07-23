@@ -1,0 +1,6 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography, } from "@mui/material";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+export default function ConfirmDialog({ open, title = "Are you sure?", message, confirmLabel = "Confirm", cancelLabel = "Cancel", destructive = false, onConfirm, onCancel, }) {
+    return (_jsxs(Dialog, { open: open, onClose: onCancel, maxWidth: "xs", fullWidth: true, PaperProps: { sx: { borderRadius: 3, p: 0.5 } }, children: [_jsxs(DialogTitle, { sx: { display: "flex", alignItems: "center", gap: 1.5, pb: 1 }, children: [destructive && _jsx(WarningAmberIcon, { color: "error", fontSize: "small" }), _jsx(Typography, { variant: "h6", fontWeight: 700, children: title })] }), _jsx(DialogContent, { children: _jsx(Typography, { variant: "body2", color: "text.secondary", children: message }) }), _jsxs(DialogActions, { sx: { px: 3, pb: 2.5, gap: 1 }, children: [_jsx(Button, { variant: "outlined", onClick: onCancel, sx: { flex: 1 }, children: cancelLabel }), _jsx(Button, { variant: "contained", color: destructive ? "error" : "primary", onClick: onConfirm, sx: { flex: 1 }, children: confirmLabel })] })] }));
+}

@@ -1,0 +1,57 @@
+import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
+import { Alert, Box, Button, Chip, CircularProgress, Collapse, Divider, Grid, LinearProgress, Tooltip, Typography, } from "@mui/material";
+import AutoFixHighIcon from "@mui/icons-material/AutoFixHigh";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import { useState } from "react";
+import { alpha } from "@mui/material/styles";
+// ── Colour maps ────────────────────────────────────────────────────────────────
+const RISK_COLOR = {
+    low: "#059669", medium: "#D97706", high: "#DC2626", critical: "#7C3AED",
+};
+const SENTIMENT_COLOR = {
+    positive: "#059669", neutral: "#64748B", negative: "#DC2626",
+};
+// ── Sub-components ─────────────────────────────────────────────────────────────
+function SectionHeader({ title, reasoning }) {
+    const [open, setOpen] = useState(false);
+    return (_jsxs(Box, { mb: 1, children: [_jsxs(Box, { display: "flex", alignItems: "center", gap: 0.5, children: [_jsx(Typography, { variant: "overline", color: "text.secondary", sx: { lineHeight: 1 }, children: title }), reasoning && (_jsx(Tooltip, { title: open ? "Hide AI reasoning" : "Show AI reasoning", arrow: true, children: _jsx(InfoOutlinedIcon, { sx: { fontSize: 14, color: "text.disabled", cursor: "pointer", "&:hover": { color: "primary.main" } }, onClick: () => setOpen((v) => !v) }) }))] }), reasoning && (_jsx(Collapse, { in: open, children: _jsx(Box, { sx: {
+                        p: 1.25, borderRadius: 1, mt: 0.5,
+                        bgcolor: (t) => alpha(t.palette.info.main, 0.06),
+                        border: "1px solid", borderColor: (t) => alpha(t.palette.info.main, 0.2),
+                    }, children: _jsxs(Typography, { variant: "caption", color: "text.secondary", lineHeight: 1.6, children: ["\uD83D\uDCA1 ", reasoning] }) }) }))] }));
+}
+function ScoreBar({ score, label }) {
+    const pct = Math.round(score * 100);
+    const color = score >= 0.75 ? "success" : score >= 0.5 ? "warning" : "error";
+    return (_jsxs(Box, { children: [_jsxs(Box, { display: "flex", justifyContent: "space-between", mb: 0.5, children: [_jsx(Typography, { variant: "caption", color: "text.secondary", children: label }), _jsxs(Typography, { variant: "caption", fontWeight: 600, children: [pct, "%"] })] }), _jsx(LinearProgress, { variant: "determinate", value: pct, color: color, sx: { height: 6, borderRadius: 3 } })] }));
+}
+function ActionList({ items, color }) {
+    return (_jsx(Box, { component: "ul", sx: { m: 0, pl: 2 }, children: items.map((a, i) => (_jsx(Typography, { component: "li", variant: "body2", sx: { mb: 0.5, color }, children: a }, i))) }));
+}
+export default function AIAnalysisPanel({ data, loading, error: _error, onRunPipeline }) {
+    const [copied, setCopied] = useState(false);
+    const handleCopy = () => {
+        if (!data?.suggested_response)
+            return;
+        navigator.clipboard.writeText(data.suggested_response);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+    if (loading) {
+        return (_jsxs(Box, { textAlign: "center", py: 6, children: [_jsx(CircularProgress, { size: 36 }), _jsx(Typography, { variant: "body2", color: "text.secondary", mt: 2, children: "Running AI pipeline\u2026 this may take 10\u201320 seconds." })] }));
+    }
+    if (!data) {
+        return (_jsxs(Box, { textAlign: "center", py: 6, children: [_jsx(AutoFixHighIcon, { sx: { fontSize: 48, color: "text.disabled", mb: 1.5 } }), _jsx(Typography, { variant: "body1", fontWeight: 600, gutterBottom: true, children: "No AI analysis yet" }), _jsx(Typography, { variant: "body2", color: "text.secondary", mb: 3, children: "Run the full pipeline to get summary, risk classification, root cause, CAPA, and more." }), _jsx(Button, { variant: "contained", startIcon: _jsx(AutoFixHighIcon, {}), onClick: onRunPipeline, children: "Run AI Analysis" })] }));
+    }
+    const { explanations: ex, risk, root_cause_analysis: rca, capa, completeness } = data;
+    return (_jsxs(Box, { children: [_jsxs(Box, { display: "flex", alignItems: "center", gap: 1, mb: 2.5, p: 1.5, sx: { borderRadius: 1.5, bgcolor: data.pipeline_status === "rejected" ? "error.50" : "success.50", border: "1px solid", borderColor: data.pipeline_status === "rejected" ? "error.200" : "success.200" }, children: [data.pipeline_status === "rejected"
+                        ? _jsx(WarningAmberIcon, { sx: { color: "error.main", fontSize: 18 } })
+                        : _jsx(CheckCircleIcon, { sx: { color: "success.main", fontSize: 18 } }), _jsx(Typography, { variant: "body2", fontWeight: 600, sx: { textTransform: "capitalize" }, children: data.pipeline_status.replace(/_/g, " ") }), data.errors.length > 0 && (_jsx(Chip, { label: `${data.errors.length} error(s)`, size: "small", color: "error", sx: { ml: "auto" } })), _jsx(Button, { size: "small", variant: "text", sx: { ml: data.errors.length ? 0 : "auto" }, onClick: onRunPipeline, children: "Re-run" })] }), data.validation_issues.length > 0 && (_jsxs(Alert, { severity: "warning", sx: { mb: 2 }, children: [_jsx(Typography, { variant: "body2", fontWeight: 600, gutterBottom: true, children: "Validation Issues" }), data.validation_issues.map((v, i) => _jsxs(Typography, { variant: "body2", children: ["\u2022 ", v] }, i))] })), data.is_duplicate && (_jsxs(Alert, { severity: "info", sx: { mb: 2 }, children: [_jsxs(Typography, { variant: "body2", children: [_jsx("strong", { children: "Possible duplicate" }), " \u2014 similarity ", Math.round(data.similarity_score * 100), "% with:", " ", _jsx("em", { children: data.duplicate_of })] }), ex?.duplicate_detection && (_jsxs(Typography, { variant: "caption", color: "text.secondary", display: "block", mt: 0.5, children: ["\uD83D\uDCA1 ", ex.duplicate_detection] }))] })), _jsxs(Grid, { container: true, spacing: 2.5, children: [data.summary && (_jsxs(Grid, { item: true, xs: 12, children: [_jsx(SectionHeader, { title: "Summary", reasoning: ex?.summary }), _jsx(Typography, { variant: "body2", lineHeight: 1.8, color: "text.primary", children: data.summary })] })), data.summary && _jsx(Grid, { item: true, xs: 12, children: _jsx(Divider, {}) }), _jsxs(Grid, { item: true, xs: 12, sm: 6, children: [_jsx(SectionHeader, { title: "Completeness", reasoning: ex?.completeness }), _jsx(ScoreBar, { score: completeness?.score ?? 0, label: "Record completeness" }), completeness?.missing_fields?.length > 0 && (_jsx(Box, { mt: 1, display: "flex", flexWrap: "wrap", gap: 0.5, children: completeness.missing_fields.map((f) => (_jsx(Chip, { label: f, size: "small", color: "warning", variant: "outlined", sx: { fontSize: "0.7rem" } }, f))) }))] }), _jsxs(Grid, { item: true, xs: 12, sm: 6, children: [_jsx(SectionHeader, { title: "Risk Classification", reasoning: ex?.risk_classification }), _jsxs(Box, { display: "flex", flexWrap: "wrap", gap: 1, mb: 1, children: [_jsx(Chip, { label: `Risk: ${risk.risk_level}`, size: "small", sx: { bgcolor: alpha(RISK_COLOR[risk.risk_level] ?? "#64748B", 0.12), color: RISK_COLOR[risk.risk_level] ?? "#64748B", fontWeight: 600, textTransform: "capitalize" } }), _jsx(Chip, { label: `Sentiment: ${risk.sentiment}`, size: "small", sx: { bgcolor: alpha(SENTIMENT_COLOR[risk.sentiment] ?? "#64748B", 0.12), color: SENTIMENT_COLOR[risk.sentiment] ?? "#64748B", fontWeight: 600, textTransform: "capitalize" } }), _jsx(Chip, { label: `Priority: ${risk.suggested_priority}`, size: "small", variant: "outlined", sx: { textTransform: "capitalize" } }), _jsx(Chip, { label: `Category: ${risk.suggested_category}`, size: "small", variant: "outlined", sx: { textTransform: "capitalize" } })] }), _jsx(ScoreBar, { score: risk.sentiment_score, label: "Negative sentiment intensity" })] }), _jsx(Grid, { item: true, xs: 12, children: _jsx(Divider, {}) }), rca?.root_cause && (_jsxs(Grid, { item: true, xs: 12, sm: 6, children: [_jsx(SectionHeader, { title: "Root Cause", reasoning: ex?.root_cause }), _jsx(Typography, { variant: "body2", fontWeight: 600, mb: 0.75, children: rca.root_cause }), rca.contributing_factors?.length > 0 && (_jsxs(_Fragment, { children: [_jsx(Typography, { variant: "caption", color: "text.secondary", display: "block", mb: 0.5, children: "Contributing factors" }), _jsx(ActionList, { items: rca.contributing_factors, color: "text.secondary" })] }))] })), (capa?.corrective_actions?.length > 0 || capa?.preventive_actions?.length > 0) && (_jsxs(Grid, { item: true, xs: 12, sm: 6, children: [_jsx(SectionHeader, { title: "CAPA Recommendations", reasoning: ex?.capa }), capa.corrective_actions?.length > 0 && (_jsxs(Box, { mb: 1.5, children: [_jsx(Typography, { variant: "caption", color: "error.main", fontWeight: 600, display: "block", mb: 0.5, children: "Corrective Actions" }), _jsx(ActionList, { items: capa.corrective_actions, color: "text.primary" })] })), capa.preventive_actions?.length > 0 && (_jsxs(Box, { children: [_jsx(Typography, { variant: "caption", color: "success.dark", fontWeight: 600, display: "block", mb: 0.5, children: "Preventive Actions" }), _jsx(ActionList, { items: capa.preventive_actions, color: "text.primary" })] })), capa.timeline_days != null && (_jsxs(Typography, { variant: "caption", color: "text.secondary", display: "block", mt: 1, children: ["\u23F1 Estimated resolution: ", capa.timeline_days, " days"] }))] })), data.suggested_response && (_jsxs(_Fragment, { children: [_jsx(Grid, { item: true, xs: 12, children: _jsx(Divider, {}) }), _jsxs(Grid, { item: true, xs: 12, children: [_jsxs(Box, { display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1, children: [_jsx(SectionHeader, { title: "Suggested Customer Response" }), _jsx(Tooltip, { title: copied ? "Copied!" : "Copy to clipboard", arrow: true, children: _jsx(Button, { size: "small", variant: "outlined", startIcon: _jsx(ContentCopyIcon, { sx: { fontSize: 14 } }), onClick: handleCopy, sx: { mb: 1 }, children: copied ? "Copied" : "Copy" }) })] }), _jsx(Box, { sx: {
+                                            p: 2, borderRadius: 1.5,
+                                            bgcolor: (t) => alpha(t.palette.primary.main, 0.04),
+                                            border: "1px solid", borderColor: (t) => alpha(t.palette.primary.main, 0.15),
+                                        }, children: _jsx(Typography, { variant: "body2", lineHeight: 1.8, color: "text.primary", children: data.suggested_response }) })] })] })), (data.extraction?.keywords?.length > 0 || data.extraction?.entities?.length > 0) && (_jsxs(_Fragment, { children: [_jsx(Grid, { item: true, xs: 12, children: _jsx(Divider, {}) }), _jsxs(Grid, { item: true, xs: 12, children: [_jsx(SectionHeader, { title: "Extracted Signals", reasoning: ex?.extraction }), _jsxs(Box, { display: "flex", flexWrap: "wrap", gap: 0.5, children: [data.extraction.keywords.map((k) => (_jsx(Chip, { label: k, size: "small", variant: "outlined", sx: { fontSize: "0.7rem" } }, k))), data.extraction.entities.map((e) => (_jsx(Chip, { label: e, size: "small", color: "primary", variant: "outlined", sx: { fontSize: "0.7rem" } }, e)))] })] })] })), data.errors.length > 0 && (_jsx(Grid, { item: true, xs: 12, children: _jsx(Alert, { severity: "error", children: data.errors.map((e, i) => _jsx(Typography, { variant: "caption", display: "block", children: e }, i)) }) }))] })] }));
+}
