@@ -361,6 +361,18 @@ When agents are conducting phone or chat interviews with patients/customers, the
 
 ---
 
+## 🔑 Demo Credentials
+
+A live demo is available at: **https://aivoa-complaint-system-nu.vercel.app**
+
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | admin@aivoa.com | Admin@123 |
+| Agent | agent@aivoa.com | Agent@123 |
+| Customer | customer@aivoa.com | Customer@123 |
+
+---
+
 ## 🌐 Production Deployment Guide
 1. **Secrets Security**: Change the `SECRET_KEY` env variable using a cryptographically secure string (e.g. `openssl rand -hex 32`).
 2. **Turn off reload in FastAPI**: In production, launch Uvicorn without `--reload` and run with multiple worker processes:

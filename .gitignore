@@ -75,3 +75,6 @@ backend/app/storage/attachments/*
 *.sw?
 .DS_Store
 Thumbs.db
+
+# Render deployment env
+render.env
